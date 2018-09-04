@@ -1,0 +1,34 @@
+{
+  "name": "news_server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.18.0",
+    "bcrypt": "^3.0.0",
+    "bluebird": "^3.5.1",
+    "chrome-remote-interface": "^0.26.1",
+    "connect-mongo": "^2.0.1",
+    "express": "^4.16.3",
+    "express-session": "^1.15.6",
+    "iconv": "^2.3.0",
+    "jsdom": "^12.0.0",
+    "mongodb": "^3.1.4",
+    "mongoose": "^5.2.12",
+    "node-readability": "^3.0.0",
+    "readability": "git+https://github.com/mozilla/readability.git",
+    "valid-url": "^1.0.9",
+    "xml2js": "^0.4.19"
+  },
+  "devDependencies": {
+    "mocha": "^5.2.0",
+    "nodemon": "^1.18.4",
+    "nyc": "^13.0.1"
+  }
+}
