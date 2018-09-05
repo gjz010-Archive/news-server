@@ -12,6 +12,7 @@ const NewsArticle=new Schema({
     "cached_content": String,
     "cached_text_content": String,
     "tags": [String],
+    "related_images": [String],
     "comments": [{"type": "ObjectId", "ref": "Comment"}],
     "likedCount": {"type": Number, "required": true, "default": 0},
     "commentCount": {"type": Number, "required": true, "default": 0}
@@ -33,4 +34,4 @@ const Comment=new Schema({
     "parent": {"type": "ObjectId", "ref": "Comment"}
 });
 
-module.exports=_.mapValues({NewsArticle, User, Comment}, (schema, name)=>mongoose.model(name, schema));
+module.exports=Object.assign({}, _.mapValues({NewsArticle, User, Comment}, (schema, name)=>mongoose.model(name, schema)), {"mongoose": mongoose});

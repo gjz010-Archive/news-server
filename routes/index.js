@@ -10,7 +10,8 @@ const ERRORS=_([null,
 {"code": 403, "reason": "Unauthorized!"},
 {"code": 409, "reason": "Duplicated Username!"},
 {"code": 401, "reason": "Login Failed!"},
-{"code":400, "reason": "Bad Request!"}
+{"code":400, "reason": "Bad Request!"},
+{"code": 404, "reason": "News not found!"}
 ]).map((err, id)=>(err?{"reason": err.reason, "err": id, "_errcode": err.code}:err)).value();
 const error=(id, data)=>Object.assign({}, ERRORS[id], {data});
 const requireUser=asyncroute(async (req, res, next)=>{
@@ -82,10 +83,52 @@ router.post("/login", asyncroute(async (req, res)=>{
 router.get("/me", requireUser, asyncroute(async (req, res)=>{
     res.status(200).json(_.pick(req.user, ["admin", "username"]));
 }));
+
 router.get("/news", asyncroute(async (req, res)=>{
-    
+    const news=await NewsArticle
+.find(req.query.before?({"date":{"$lt":new Date(req.query.before)}}):({}), {"title":1, "description":1, "author":1, "date":1})
+.sort({"date":-1}).limit(req.query.limit||20).exec();
+    res.status(200).json(news.map(x=>x.toObject()));
+}));
+router.get("/news/:id", asyncroute(async (req, res)=>{
+
+    const news=await NewsArticle
+.findOne({"_id": req.params.id}, {"title":1, "description":1, "author":1, "date":1, "cached_content": 1, "related_images": 1})
+.exec();
+	if(!news) throw error(6);
+
+    res.status(200).json(news);
+}));
+router.get("/news/:id/html", asyncroute(async (req, res)=>{
+    const news=await NewsArticle
+.findOne({"_id": req.params.id}, {"title":1, "description":1, "author":1, "date":1, "cached_content": 1})
+.exec();
+	if(!news) throw error(6);
+res.type('text/html; charset=utf-8');
+    res.status(200).end(news.cached_content);
+}));
+
+const mongo=require('mongodb');
+mongo.MongoClient.connect(require('../config').mongo.url,(err, client)=>{
+const db=client.db('news_server');
+const bucket=new mongo.GridFSBucket(db);
+
+router.get("/images/:token", asyncroute(async (req, res)=>{
+	try{
+	const stream=bucket.openDownloadStreamByName(req.params.token);
+	stream.on('error', (err)=>{
+		//console.log(err);
+		res.sendStatus(404);
+	})
+	res.setHeader("content-type", "image/png");
+
+	stream.pipe(res);
+	}catch(err){
+		console.log(err);
+	}
 }));
 
 
 
+});
 module.exports=router;

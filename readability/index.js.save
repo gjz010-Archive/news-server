@@ -22,14 +22,15 @@ function runReadability(instance, callback) {
     console.log(img.src);
     await (new Promise((a, b)=>{
 		img.setAttribute("crossOrigin",'Anonymous');
-		img.onload=a; 
-		img.onerror=b;
+		img.onload=a;
+                img.onerror=b; 
 		img.src=img.src; 
+
 	}))    
    console.log(img.src);
-var canvas = document.createElement("canvas");
-canvas.width = width||img.naturalWidth;
-canvas.height = height||img.naturalHeight;
+   var canvas = document.createElement("canvas");
+   canvas.width = width||img.naturalWidth;
+   canvas.height = height||img.naturalHeight;
     var ctx = canvas.getContext("2d");
     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
     var dataURL = canvas.toDataURL("image/png");
@@ -74,11 +75,12 @@ function token() {
 	imgSrcs.push((async ()=>{
           const t=token();
 		console.log("Loading image "+t);
-		let content;
 		try{
-			content=await getBase64Image(imgs[i]);
-		}catch(err){console.log("Image "+t+" failed, removing..."); imgs[i].parentElement.removeChild(imgs[i]); return null;}
-		  const ret=({"token": t, "content": content});
+			
+		}catch(err){
+
+		}
+		  const ret=({"token": t, "content": await getBase64Image(imgs[i])});
 		console.log("Image "+t+" loaded");
           	imgs[i].src="https://news.gjz010.com/images/"+t;
 		  return ret;
@@ -86,7 +88,7 @@ function token() {
         else imgs[i].parentElement.removeChild(imgs[i]);
 
       }
-      result.images=(await Promise.all(imgSrcs)).filter(x=>x)
+      result.images=await Promise.all(imgSrcs);
       result.content=document.body.innerHTML;
       console.log("Work Done!");
       return JSON.stringify(result);
@@ -101,7 +103,7 @@ function token() {
   };
 
   instance.Runtime.evaluate({'expression': "(" + injection.toString() + ")()", "awaitPromise": true}, function (err, result) {
-    console.log("ErrState:"+err);
+    //console.log("ErrState:"+err);
     if (result.result.value) {
       var article = JSON.parse(result.result.value);
       callback(null, article);

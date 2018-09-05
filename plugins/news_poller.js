@@ -1,9 +1,32 @@
-const {NewsArticle}=require('../models');
+const {NewsArticle, mongoose}=require('../models');
 const chrome=require('../readability');
 const bluebird=require('bluebird');
 bluebird.promisifyAll(chrome);
-async function poll(){
+
+const mongo=require('mongodb');
+mongo.MongoClient.connect(require('../config').mongo.url,(err, client)=>{
+const db=client.db('news_server');
+const bucket=new mongo.GridFSBucket(db);
+
+async function writeFile(name, b64){
+    const ret=new Promise((a,b)=>{
+	console.log('uploading '+name);
+        const buf=new Buffer(b64, "base64");
+	const stream=bucket.openUploadStream(name);
+	stream.on('end', ()=>{
+		console.log("end");
+	})
+	stream.on('error', b)
+	stream.on('finish', (file)=>{
+		console.log(file.filename, " written to db.");
+		a();
+	});
+	stream.end(buf);
+    });
     
+    await ret;
+}
+async function poll(){
     while(true){
         const news=await NewsArticle.findOne({"cached_content":{"$eq":null}}, {"title":true, "link":true});
         if(!news){
@@ -16,7 +39,11 @@ async function poll(){
         if(content){
 		news.cached_content=content.content;
 		news.cached_textcontent=content.textContent;
+                const images=content.images;
+		await Promise.all(images.map(x=>writeFile(x.token, x.content)));
+                news.related_images=images.map(x=>x.token)
 		await news.save();
+		
 	}
 	else{
 		console.log("Bad News!");
@@ -29,3 +56,6 @@ async function poll(){
 
 
 poll();
+
+
+});
