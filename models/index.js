@@ -10,6 +10,7 @@ const NewsArticle=new Schema({
     "description": String,
     "date": {"type": Date,"required": true}, 
     "cached_content": String,
+    "cached_text_content": String,
     "tags": [String],
     "comments": [{"type": "ObjectId", "ref": "Comment"}],
     "likedCount": {"type": Number, "required": true, "default": 0},
