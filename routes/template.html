@@ -1,0 +1,31 @@
+<html>
+<head>
+<title>${title}</title>
+<meta name="viewport" content="width=device-width, height=device-height, initial-scale=1" />
+<style type="text/css">
+img[src*="news.gjz010.com"] {
+  height: auto;
+  max-width: 90vw;
+  display:block;
+}
+hr{
+	border-top: 3px double #8c8b8b;
+}
+</style>
+</head>
+
+<body style="background-color:#ecdcb2;min-height: 1000px;">
+    <div id="news_head">
+    <h2>${title}</h2>
+	<p style="text-align: right;"><span >${author} ${date}</span></p>
+    </div>
+	<hr/>
+    <div id="news_body" style="min-height: 800px;">
+		
+        ${content}
+    </div>
+    <hr/>
+    <div id="blank" style="height: 100px;">
+    </div>
+</body>
+</html>

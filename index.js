@@ -15,7 +15,7 @@ app.use(session({
 }));
 app.use(require('body-parser').json())
 app.use(require('./routes'))
-
+app.set("json spaces", 2)
 
 
 app.use(function (err, req, res, next) {
