@@ -16,6 +16,7 @@
     "canvas": "^1.6.11",
     "chrome-remote-interface": "^0.26.1",
     "connect-mongo": "^2.0.1",
+    "elasticsearch": "^15.1.1",
     "es6-dynamic-template": "^1.0.5",
     "express": "^4.16.3",
     "express-session": "^1.15.6",

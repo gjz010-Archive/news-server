@@ -31,6 +31,7 @@ async function poll(){
         const news=await NewsArticle.findOne({"cached_content":{"$eq":null}}, {"title":true, "link":true});
         if(!news){
 		console.log("No news!");
+                await new Promise((a)=>setTimeout(a, 10000));
 		continue;
 	}
         console.log(news);

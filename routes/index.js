@@ -7,8 +7,10 @@ const asyncroute=func=>(req,res,next)=>{Promise.resolve(func(req,res,next)).catc
 const bcrypt=require('bcrypt');
 const fs=require('fs');
 const path=require('path');
+const es=require('../es');
 const PHONE_TEMPLATE=fs.readFileSync(path.resolve(__dirname, "template.html"), "utf-8");
 const fillTemplate = require('es6-dynamic-template');
+
 const ERRORS=_([null, 
 {"code": 401, "reason": "Not Logged In!"},
 {"code": 403, "reason": "Unauthorized!"},
@@ -132,6 +134,91 @@ router.get("/news/:id/html", asyncroute(async (req, res)=>{
 res.type('text/html; charset=utf-8');
     res.status(200).end(templated_content);
 }));
+
+
+router.get("/news/:id/more", asyncroute(async (req, res)=>{
+const body={        "_source":[],
+
+    "query": {
+        "more_like_this" : {
+            "fields" : ["title", "description", "cached_content"],
+            "like" : [
+            {
+                "_index" : "news_server",
+                "_type" : "newsarticles",
+                "_id" : req.params.id
+            }
+            ],
+            "min_term_freq" : 1,
+            "max_query_terms" : 12
+        }
+    }
+}
+const resp=await es.search({"index": "news_server", "type": "newsarticles", "body": body});
+const hits=resp.hits.hits;
+res.status(200).json(hits.map(x=>({"_id": x._id, "score": x._score})));
+}));
+
+
+router.get("/search", asyncroute(async (req, res)=>{
+if(!req.query.q) return res.sendStatus(400);
+const body={ "query" : { 
+    "multi_match" : {
+      "query" : req.query.q,
+      "fields" : [ "title^3", "description^2", "cached_content^1" ] 
+      }
+    },
+    "size": 10,
+
+    "highlight" : {
+        "pre_tags" : ["<b>"],
+        "post_tags" : ["</b>"],
+        "fields" : {
+            "title" : {}, "description":{}
+            
+        }
+    },
+    "sort":[
+      {"_score":{"order": "desc"}}, {"_id": {"order": "asc"}}
+    ]
+    }
+if(req.query.before){
+    body.search_after=JSON.parse(new Buffer(req.query.before, "base64").toString("utf-8"));
+}
+const resp=await es.search({"index": "news_server", "type": "newsarticles", "body": body});
+const hits=resp.hits.hits;
+if(hits.length){
+const next_token=new Buffer(JSON.stringify([hits[hits.length-1]._score, hits[hits.length-1]._id]), "utf-8").toString("base64");
+res.header("X-Next-Page", next_token);
+}
+res.status(200).json(hits.map(x=>({"_id": x._id, "title": x._source.title, "description": x._source.description, "highlight": x.highlight, "related_images": x._source.related_images, "link": x._source.link})));
+
+
+
+}));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 const mongo=require('mongodb');
 mongo.MongoClient.connect(require('../config').mongo.url,(err, client)=>{

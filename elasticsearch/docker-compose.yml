@@ -17,6 +17,10 @@ services:
       - 9300:9300
     networks:
       - esnet
+  kibana:
+    image: docker.elastic.co/kibana/kibana:6.4.0
+    networks:
+      - esnet
 volumes:
   esdata:
     driver: local
